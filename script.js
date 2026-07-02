@@ -17,9 +17,44 @@ const btnRestart = document.getElementById('btnRestart');
 const btnEndToMenu = document.getElementById('btnEndToMenu');
 const btnSettingsToMenu = document.getElementById('btnSettingsToMenu');
 const volumeSlider = document.getElementById('volumeSlider');
+const gameContainer = document.getElementById('gameContainer');
 
 // 볼륨 기본값 (0.0 ~ 1.0)
 let masterVolume = 0.5;
+
+// ==========================================
+// 반응형 스케일 조정 함수
+// .container(820px wide, ~750px tall 기준)를 뷰포트에 맞게 비율 축소/확대
+// ==========================================
+const CONTAINER_W = 820; // container의 고정 논리 너비
+const CONTAINER_H = 750; // container의 고정 논리 높이 (캔버스 600 + h1 + bottom-area 등 포함)
+
+function applyScale() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // 너비와 높이 비율 중 더 작은 쪽으로 맞춤 (가로 세로 동시에 들어오도록)
+    const scaleX = vw / CONTAINER_W;
+    const scaleY = vh / CONTAINER_H;
+    const scale = Math.min(scaleX, scaleY, 1); // 1 이상으로는 확대하지 않음 (데스크탑 원본 유지)
+
+    gameContainer.style.transform = `scale(${scale})`;
+    gameContainer.style.transformOrigin = 'top center';
+
+    // viewport-wrapper가 스케일된 container를 중앙 정렬하도록
+    // container의 실제 점유 높이를 보정해줌
+    const scaledH = CONTAINER_H * scale;
+    const topOffset = Math.max(0, (vh - scaledH) / 2);
+    gameContainer.style.marginTop = `${topOffset}px`;
+}
+
+// 초기 실행 및 창 크기 변경 시 재실행
+window.addEventListener('resize', applyScale);
+window.addEventListener('orientationchange', () => {
+    // orientationchange 후 실제 크기가 업데이트되는 데 약간의 지연이 있음
+    setTimeout(applyScale, 200);
+});
+applyScale();
 
 // ==========================================
 // 2. 스테이지별 스펙(난이도 및 환경) 설정 데이터

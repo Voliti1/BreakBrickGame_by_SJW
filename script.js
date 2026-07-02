@@ -45,8 +45,8 @@ function applyScale() {
     gameContainer.style.transformOrigin = 'top center';
 
     if (scale >= 1) {
-        // PC: 스케일 없이 원본 크기 → 상단 소량 여백만 부여
-        gameContainer.style.marginTop = '8px';
+        // PC: 스케일 없이 원본 크기 → 상단 여백 없이 밀착
+        gameContainer.style.marginTop = '0px';
     } else {
         // 모바일: 스케일 적용 → 스케일된 높이 기준으로 수직 중앙 정렬
         const scaledH = CONTAINER_H * scale;
@@ -569,16 +569,18 @@ function keyUpHandler(e) {
     }
 }
 
-// 캔버스 마우스 클릭 감지 (생명 표시 우측 일시정지 사각형 버튼 클릭 처리)
+// 캔버스 마우스 클릭 감지 (STAGE 우측 일시정지 사각형 버튼 클릭 처리)
 canvas.addEventListener('click', (e) => {
     if (gameState !== 'playing') return;
     
     const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
     
-    // 일시정지 사각형 버튼 영역: x: 230 ~ 254, y: 8 ~ 32 (가로24, 세로24)
-    if (mouseX >= 230 && mouseX <= 254 && mouseY >= 8 && mouseY <= 32) {
+    // 일시정지 버튼 영역: x: 762~796, y: 8~42 (34×34)
+    if (mouseX >= 762 && mouseX <= 796 && mouseY >= 8 && mouseY <= 42) {
         togglePause();
     }
 });
@@ -876,27 +878,33 @@ function drawLivesAndPauseButton() {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     
-    // 생명 텍스트 드로잉 (x = 150, y = 12로 정렬 일치)
+    // 생명 텍스트 드로잉 (x = 150, y = 12)
     ctx.fillText('생명 : ' + lives, 150, 12);
     
-    // 일시정지 조종 버튼 사각형 드로잉 (x = 230, y = 8 ~ 32)
+    // 일시정지 버튼: STAGE 텍스트 오른쪽, 우측 끝 밀착 (34×34)
+    // 캔버스 너비 800, 버튼 우측 끝 x=796, 좌측 x=762, y=8~42
+    const btnX = 762;
+    const btnY = 8;
+    const btnW = 34;
+    const btnH = 34;
+    
     ctx.fillStyle = '#1f1f2e';
     ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.rect(230, 8, 24, 24); 
+    ctx.rect(btnX, btnY, btnW, btnH);
     ctx.fill();
     ctx.stroke();
     ctx.closePath();
     
     // 버튼 내 기호 렌더링
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 12px "Malgun Gothic", sans-serif';
+    ctx.font = 'bold 14px "Malgun Gothic", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
     const symbol = (isPaused && !isCountingDown) ? '||' : '▶';
-    ctx.fillText(symbol, 242, 20); // y = 20 정중앙
+    ctx.fillText(symbol, btnX + btnW / 2, btnY + btnH / 2);
 }
 
 function drawBuffTimer() {

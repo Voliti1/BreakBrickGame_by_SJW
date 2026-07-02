@@ -22,6 +22,9 @@ const gameContainer = document.getElementById('gameContainer');
 // 볼륨 기본값 (0.0 ~ 1.0)
 let masterVolume = 0.5;
 
+// 모바일 여부 감지 (터치 기기 또는 좁은 화면)
+const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
 // ==========================================
 // 반응형 스케일 조정 함수
 // .container(820px wide, ~750px tall 기준)를 뷰포트에 맞게 비율 축소/확대
@@ -352,9 +355,12 @@ function initBall() {
     ball.y = paddle.y - ball.radius;
     
     const spec = stages[currentStage];
-    const startAngle = Math.PI / 4; 
-    ball.dx = spec.speed * Math.cos(startAngle);
-    ball.dy = -spec.speed * Math.sin(startAngle);
+    const startAngle = Math.PI / 4;
+    // 모바일에서는 속도를 1 감소시켜 조작 편의성 향상
+    const mobileSpeedOffset = isMobile ? -1 : 0;
+    const actualSpeed = Math.max(1, spec.speed + mobileSpeedOffset);
+    ball.dx = actualSpeed * Math.cos(startAngle);
+    ball.dy = -actualSpeed * Math.sin(startAngle);
 }
 
 // 공이 죽었을 때 1초 딜레이 타이머
@@ -1093,19 +1099,7 @@ function gameLoop() {
 // 게임 루프 즉시 기동
 requestAnimationFrame(gameLoop);
 
-// 개발자용 치트 버튼 바인딩
-document.getElementById('cheatBtn').addEventListener('click', () => {
-    if (gameOver || gameWin || gameState !== 'playing') return;
-    
-    playStageClearSound();
-    
-    currentStage++;
-    if (currentStage > 5) {
-        gameWin = true;
-    } else {
-        initBricks(currentStage);
-        initBall();
-        isStageClearing = false;
-        triggerResetPause();
-    }
+// 일시정지 버튼 바인딩
+document.getElementById('pauseBtn').addEventListener('click', () => {
+    togglePause();
 });

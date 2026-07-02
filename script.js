@@ -44,12 +44,17 @@ function applyScale() {
     gameContainer.style.transform = `scale(${scale})`;
     gameContainer.style.transformOrigin = 'top center';
 
-    // viewport-wrapper가 스케일된 container를 중앙 정렬하도록
-    // container의 실제 점유 높이를 보정해줌
-    const scaledH = CONTAINER_H * scale;
-    const topOffset = Math.max(0, (vh - scaledH) / 2);
-    gameContainer.style.marginTop = `${topOffset}px`;
+    if (scale >= 1) {
+        // PC: 스케일 없이 원본 크기 → 상단 소량 여백만 부여
+        gameContainer.style.marginTop = '8px';
+    } else {
+        // 모바일: 스케일 적용 → 스케일된 높이 기준으로 수직 중앙 정렬
+        const scaledH = CONTAINER_H * scale;
+        const topOffset = Math.max(0, (vh - scaledH) / 2);
+        gameContainer.style.marginTop = `${topOffset}px`;
+    }
 }
+
 
 // 초기 실행 및 창 크기 변경 시 재실행
 window.addEventListener('resize', applyScale);
